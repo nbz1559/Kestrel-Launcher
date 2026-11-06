@@ -1,13 +1,129 @@
 ﻿<!DOCTYPE html>
 <html>
-<body style="background:#111;color:#fff;font-family:sans-serif;padding:2rem">
-    <h1>Kestrel Launcher</h1>
-    <button id="btn">Ping C#</button>
-    <p id="out"></p>
+<head>
+    <meta charset="utf-8">
+    <style>
+        :root {
+            --bg: #111;
+            --titlebar-h: 36px;
+            --text: #fff;
+            --muted: #9a9a9a;
+            --hover: rgba(255,255,255,.08);
+            --close: #e81123;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html, body {
+            margin: 0;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: sans-serif;
+        }
+
+        .titlebar {
+            height: var(--titlebar-h);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-left: 12px;
+            background: var(--bg);
+            border-bottom: 1px solid rgba(255,255,255,.06);
+            -webkit-app-region: drag;
+            user-select: none;
+        }
+
+            .titlebar .title {
+                font-size: 12px;
+                color: var(--muted);
+                letter-spacing: .04em;
+            }
+
+        .controls {
+            display: flex;
+            height: 100%;
+            -webkit-app-region: no-drag;
+        }
+
+            .controls button {
+                width: 46px;
+                height: 100%;
+                background: none;
+                border: 0;
+                color: var(--text);
+                display: grid;
+                place-items: center;
+                cursor: default;
+            }
+
+                .controls button:hover {
+                    background: var(--hover);
+                }
+
+                .controls button.close:hover {
+                    background: var(--close);
+                }
+
+            .controls svg {
+                width: 10px;
+                height: 10px;
+                stroke: currentColor;
+                fill: none;
+                stroke-width: 1;
+            }
+
+        .content {
+            padding: 2rem;
+            height: calc(100% - var(--titlebar-h));
+            overflow: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="titlebar">
+        <span class="title">KESTREL LAUNCHER</span>
+        <div class="controls">
+            <button data-action="minimize" title="Minimize">
+                <svg viewBox="0 0 10 10"><path d="M0 5h10" /></svg>
+            </button>
+            <button data-action="maximize" title="Maximize">
+                <svg id="maxIcon" viewBox="0 0 10 10"><rect x=".5" y=".5" width="9" height="9" /></svg>
+            </button>
+            <button data-action="close" class="close" title="Close">
+                <svg viewBox="0 0 10 10"><path d="M0 0l10 10M10 0L0 10" /></svg>
+            </button>
+        </div>
+    </div>
+
+    <div class="content">
+        <h1>Kestrel Launcher</h1>
+        <button id="btn">Ping C#</button>
+        <p id="out"></p>
+    </div>
+
     <script>
-        document.getElementById('btn').onclick = () => window.chrome.webview.postMessage('ping');
+        const send = msg => window.chrome.webview.postMessage(msg);
+
+        document.querySelectorAll('.controls button').forEach(b =>
+        b.onclick = () => send({ type: 'window', action: b.dataset.action }));
+
+        document.getElementById('btn').onclick = () => send({ type: 'ping' });
+
+        const maxIcon = document.getElementById('maxIcon');
+        const ICON_MAX = '<rect x=".5" y=".5" width="9" height="9"/>';
+        const ICON_RESTORE = '<rect x=".5" y="2.5" width="7" height="7"/><path d="M2.5 2.5v-2h7v7h-2"/>';
+
         window.chrome.webview.addEventListener('message', e => {
-        document.getElementById('out').textContent = e.data;
+        const msg = e.data;
+        if (msg.type === 'pong') document.getElementById('out').textContent = msg.text;
+        if (msg.type === 'windowState') maxIcon.innerHTML = msg.maximized ? ICON_RESTORE : ICON_MAX;
         });
     </script>
 </body>
