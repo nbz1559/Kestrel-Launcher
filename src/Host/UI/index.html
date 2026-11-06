@@ -1,0 +1,14 @@
+﻿<!DOCTYPE html>
+<html>
+<body style="background:#111;color:#fff;font-family:sans-serif;padding:2rem">
+    <h1>Kestrel Launcher</h1>
+    <button id="btn">Ping C#</button>
+    <p id="out"></p>
+    <script>
+        document.getElementById('btn').onclick = () => window.chrome.webview.postMessage('ping');
+        window.chrome.webview.addEventListener('message', e => {
+        document.getElementById('out').textContent = e.data;
+        });
+    </script>
+</body>
+</html>

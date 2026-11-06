@@ -1,23 +1,33 @@
-﻿using System.Text;
+﻿using System.IO;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
+using Microsoft.Web.WebView2.Core;
 
 namespace Host;
 
-/// <summary>
-/// Interaction logic for MainWindow.xaml
-/// </summary>
 public partial class MainWindow : Window
 {
     public MainWindow()
     {
         InitializeComponent();
+        Loaded += async (_, _) => await InitWebAsync();
+    }
+
+    async Task InitWebAsync()
+    {
+        var dataDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Kestrel", "WebView2");
+
+        var env = await CoreWebView2Environment.CreateAsync(userDataFolder: dataDir);
+        await Web.EnsureCoreWebView2Async(env);
+
+        Web.CoreWebView2.SetVirtualHostNameToFolderMapping("app.local", Path.Combine(AppContext.BaseDirectory, "UI"), CoreWebView2HostResourceAccessKind.Allow);
+
+        Web.CoreWebView2.WebMessageReceived += OnMessage;
+        Web.CoreWebView2.Navigate("https://app.local/index.html");
+    }
+
+    void OnMessage(object? sender, CoreWebView2WebMessageReceivedEventArgs e)
+    {
+        if (e.TryGetWebMessageAsString() == "ping")
+            Web.CoreWebView2.PostWebMessageAsString("pong from C#");
     }
 }
