@@ -1,0 +1,21 @@
+/* Shared design tokens. Identical to the website's tokens.css. */
+:root {
+  --bg:      #0c0816;
+  --panel:   #150f27;
+  --line:    #2b2050;
+  --neon:    #b44dff;
+  --neon-hi: #e0a8ff;
+  --text:    #efe9fb;
+  --muted:   #9d92bd;
+  --ok:      #4ade80;
+  --bad:     #f87171;
+
+  --glow: 0 0 6px rgba(224,168,255,.9),
+          0 0 22px rgba(180,77,255,.8),
+          0 0 60px rgba(180,77,255,.45);
+  --glow-box: 0 0 0 1px var(--neon), 0 0 18px rgba(180,77,255,.45);
+
+  --radius: 10px;
+  --font-display: "Syne", "Segoe UI", sans-serif;
+  --font-body: "Figtree", "Segoe UI", sans-serif;
+}

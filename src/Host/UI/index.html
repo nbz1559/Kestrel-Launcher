@@ -1,130 +1,50 @@
-﻿<!DOCTYPE html>
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
     <meta charset="utf-8">
-    <style>
-        :root {
-            --bg: #111;
-            --titlebar-h: 36px;
-            --text: #fff;
-            --muted: #9a9a9a;
-            --hover: rgba(255,255,255,.08);
-            --close: #e81123;
-        }
-
-        * {
-            box-sizing: border-box;
-        }
-
-        html, body {
-            margin: 0;
-            height: 100%;
-            overflow: hidden;
-        }
-
-        body {
-            background: var(--bg);
-            color: var(--text);
-            font-family: sans-serif;
-        }
-
-        .titlebar {
-            height: var(--titlebar-h);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding-left: 12px;
-            background: var(--bg);
-            border-bottom: 1px solid rgba(255,255,255,.06);
-            -webkit-app-region: drag;
-            user-select: none;
-        }
-
-            .titlebar .title {
-                font-size: 12px;
-                color: var(--muted);
-                letter-spacing: .04em;
-            }
-
-        .controls {
-            display: flex;
-            height: 100%;
-            -webkit-app-region: no-drag;
-        }
-
-            .controls button {
-                width: 46px;
-                height: 100%;
-                background: none;
-                border: 0;
-                color: var(--text);
-                display: grid;
-                place-items: center;
-                cursor: default;
-            }
-
-                .controls button:hover {
-                    background: var(--hover);
-                }
-
-                .controls button.close:hover {
-                    background: var(--close);
-                }
-
-            .controls svg {
-                width: 10px;
-                height: 10px;
-                stroke: currentColor;
-                fill: none;
-                stroke-width: 1;
-            }
-
-        .content {
-            padding: 2rem;
-            height: calc(100% - var(--titlebar-h));
-            overflow: auto;
-        }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Kestrel Launcher</title>
+    <link rel="stylesheet" href="/css/tokens.css">
+    <link rel="stylesheet" href="/css/app.css">
 </head>
 <body>
     <div class="titlebar">
-        <span class="title">KESTREL LAUNCHER</span>
+        <span class="title">Kestrel Launcher</span>
         <div class="controls">
-            <button data-action="minimize" title="Minimize">
-                <svg viewBox="0 0 10 10"><path d="M0 5h10" /></svg>
-            </button>
-            <button data-action="maximize" title="Maximize">
-                <svg id="maxIcon" viewBox="0 0 10 10"><rect x=".5" y=".5" width="9" height="9" /></svg>
-            </button>
-            <button data-action="close" class="close" title="Close">
-                <svg viewBox="0 0 10 10"><path d="M0 0l10 10M10 0L0 10" /></svg>
-            </button>
+            <button data-action="minimize" title="Minimize" aria-label="Minimize"><svg viewBox="0 0 10 10"><path d="M0 5h10" /></svg></button>
+            <button data-action="maximize" title="Maximize" aria-label="Maximize"><svg id="maxIcon" viewBox="0 0 10 10"><rect x=".5" y=".5" width="9" height="9" /></svg></button>
+            <button data-action="close" class="close" title="Close" aria-label="Close"><svg viewBox="0 0 10 10"><path d="M0 0l10 10M10 0L0 10" /></svg></button>
         </div>
     </div>
 
-    <div class="content">
-        <h1>Kestrel Launcher</h1>
-        <button id="btn">Ping C#</button>
-        <p id="out"></p>
+    <div class="shell">
+        <aside class="sidebar">
+            <div class="wordmark">Kestrel</div>
+            <nav>
+                <button class="nav-item" data-page="mods" aria-current="page">
+                    <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7.5" height="7.5" rx="2" /><rect x="13.5" y="3" width="7.5" height="7.5" rx="2" /><rect x="3" y="13.5" width="7.5" height="7.5" rx="2" /><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="2" /></svg>
+                    Mods
+                </button>
+                <button class="nav-item nav-bottom" data-page="settings">
+                    <svg viewBox="0 0 24 24"><path d="M4 7h9M17 7h3M4 17h3M11 17h9M4 12h4M12 12h8" /><circle cx="15" cy="7" r="2" /><circle cx="9" cy="17" r="2" /><circle cx="10" cy="12" r="2" /></svg>
+                    Settings
+                </button>
+            </nav>
+            <div id="update-box" class="update" hidden></div>
+            <div class="side-foot">
+                <div class="status" id="server-status" data-state="online"><span class="dot"></span><span class="label">Server online</span></div>
+                <div id="launcher-version"></div>
+            </div>
+        </aside>
+
+        <main>
+            <section id="page-mods"><h1>Mods</h1><div id="mod-list"></div></section>
+            <section id="page-settings" hidden><h1>Settings</h1><div id="settings-list"></div></section>
+        </main>
     </div>
 
-    <script>
-        const send = msg => window.chrome.webview.postMessage(msg);
-
-        document.querySelectorAll('.controls button').forEach(b =>
-        b.onclick = () => send({ type: 'window', action: b.dataset.action }));
-
-        document.getElementById('btn').onclick = () => send({ type: 'ping' });
-
-        const maxIcon = document.getElementById('maxIcon');
-        const ICON_MAX = '<rect x=".5" y=".5" width="9" height="9"/>';
-        const ICON_RESTORE = '<rect x=".5" y="2.5" width="7" height="7"/><path d="M2.5 2.5v-2h7v7h-2"/>';
-
-        window.chrome.webview.addEventListener('message', e => {
-        const msg = e.data;
-        if (msg.type === 'pong') document.getElementById('out').textContent = msg.text;
-        if (msg.type === 'windowState') maxIcon.innerHTML = msg.maximized ? ICON_RESTORE : ICON_MAX;
-        });
-    </script>
+    <div id="toast" role="status"></div>
+    <script src="/js/host.js"></script>
+    <script src="/js/app.js"></script>
 </body>
 </html>
